@@ -1,16 +1,37 @@
-# flutter_news
+# News App  
+A comprehensive news application built with Flutter, integrating real-time news, weather updates, and finance data. It features robust user authentication powered by Supabase.  
 
-A new Flutter project.
+## Features  
+- **Personalized News Feed**: Fetches and displays news articles from various categories.  
+- **Real-time Weather**: Provides current weather conditions and forecasts for user-specified locations.  
+- **Financial Data**: Displays key financial market information.  
+- **User Authentication**: Secure sign-up, login, and profile management using Supabase.  
+- **Responsive UI**: Designed to work seamlessly across different mobile devices.  
+- **Offline Caching**: *(Future enhancement)* Cache news articles for offline reading.  
 
-## Getting Started
+## Tech Stack  
+- **Framework**: Flutter  
+- **State Management**: Provider, Riverpod, or BLoC (to be chosen based on project scale)  
+- **API Integration**: `http` package for REST API calls  
+- **Database & Authentication**: Supabase  
+- **Local Storage**: `shared_preferences` (for user preferences, if needed)  
 
-This project is a starting point for a Flutter application.
+## Installation  
+1. **Clone the repository**:  
+   ```bash
+   git clone https://github.com/your-username/news_app.git
+   cd news_app
+Install dependencies:
+**flutter pub get
+Set up External Data Sources and Supabase:**
+**
+Obtain necessary API credentials and configure them securely.**
 
-A few resources to get you started if this is your first Flutter project:
+**Set up your Supabase project (Project URL and Anon Public Key) and initialize it in your Flutter app.**
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+**Run the application:**
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+
+**flutter run**
+
+
