@@ -1,16 +1,86 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
-import '../providers/news_provider.dart';
 
-class NewsScreen extends StatelessWidget {
+class NewsScreen extends StatefulWidget {
   const NewsScreen({super.key});
 
   @override
+  State<NewsScreen> createState() => _NewsScreenState();
+}
+
+class _NewsScreenState extends State<NewsScreen> {
+  String _selectedCategory = 'general';
+  bool _isLoading = false;
+  String _error = '';
+  List<Map<String, String>> _articles = [];
+
+  // Simulated fetchNews (replace with your actual data source)
+  Future<void> _fetchNews(String category) async {
+    setState(() {
+      _isLoading = true;
+      _error = '';
+    });
+    try {
+      // Simulate fetching articles (replace with your API call or data source)
+      await Future.delayed(
+        const Duration(seconds: 1),
+      ); // Simulate network delay
+      setState(() {
+        _selectedCategory = category;
+        _articles = _getSampleArticles(category);
+        _isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        _error = 'Error fetching news: $e';
+        _isLoading = false;
+      });
+    }
+  }
+
+  // Sample articles (replace with your data model)
+  List<Map<String, String>> _getSampleArticles(String category) {
+    return [
+      if (category == 'general') ...[
+        {
+          'title': 'General News Headline',
+          'url': 'https://example.com',
+          'imageUrl': 'https://via.placeholder.com/150',
+          'timeAgo': '1 hour ago',
+          'source': 'News Daily',
+        },
+      ],
+      if (category == 'sports') ...[
+        {
+          'title': 'Sports Event Update',
+          'url': 'https://example.com',
+          'imageUrl': 'https://via.placeholder.com/150',
+          'timeAgo': '2 hours ago',
+          'source': 'Sports Now',
+        },
+      ],
+      if (category == 'business') ...[
+        {
+          'title': 'Business Market Report',
+          'url': 'https://example.com',
+          'imageUrl': 'https://via.placeholder.com/150',
+          'timeAgo': '3 hours ago',
+          'source': 'Business Today',
+        },
+      ],
+    ];
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchNews(_selectedCategory);
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final newsProvider = Provider.of<NewsProvider>(context);
-    final ThemeData theme = Theme.of(context); // Local declaration
+    final ThemeData theme = Theme.of(context);
 
     return Scaffold(
       appBar: AppBar(
@@ -45,32 +115,53 @@ class NewsScreen extends StatelessWidget {
         ),
         child: Column(
           children: [
-            SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.all(8.0),
-              child: Row(
-                children: [
-                  _buildCategoryTab('All', true, () {
-                    newsProvider.fetchNews('general');
-                  }),
-                  _buildCategoryTab('Tech', false, () {
-                    newsProvider.fetchNews('tech');
-                  }),
-                  _buildCategoryTab('Business', false, () {
-                    newsProvider.fetchNews('business');
-                  }),
-                  _buildCategoryTab('Health', false, () {
-                    newsProvider.fetchNews('health');
-                  }),
-                  _buildCategoryTab('Sports', false, () {
-                    newsProvider.fetchNews('sports');
-                  }),
-                ],
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(30),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.grey.shade200,
+                      blurRadius: 10,
+                      offset: const Offset(0, 5),
+                    ),
+                  ],
+                ),
+                child: DropdownButtonHideUnderline(
+                  child: DropdownButton<String>(
+                    value: _selectedCategory,
+                    isExpanded: true,
+                    icon: const Icon(
+                      Icons.arrow_drop_down_circle_outlined,
+                      color: Colors.blue,
+                    ),
+                    style: const TextStyle(color: Colors.black87, fontSize: 16),
+                    items: const [
+                      DropdownMenuItem(
+                        value: 'general',
+                        child: Text('General'),
+                      ),
+                      DropdownMenuItem(value: 'sports', child: Text('Sports')),
+                      DropdownMenuItem(
+                        value: 'business',
+                        child: Text('Business'),
+                      ),
+                    ],
+                    onChanged: (value) {
+                      if (value != null) {
+                        _fetchNews(value);
+                      }
+                    },
+                  ),
+                ),
               ),
             ),
             Expanded(
               child:
-                  newsProvider.isLoading
+                  _isLoading
                       ? const Center(
                         child: CircularProgressIndicator(
                           valueColor: AlwaysStoppedAnimation<Color>(
@@ -78,10 +169,10 @@ class NewsScreen extends StatelessWidget {
                           ),
                         ),
                       )
-                      : newsProvider.error.isNotEmpty
+                      : _error.isNotEmpty
                       ? Center(
                         child: Text(
-                          newsProvider.error,
+                          _error,
                           style: TextStyle(
                             color: Colors.red.shade700,
                             fontSize: 16,
@@ -90,12 +181,127 @@ class NewsScreen extends StatelessWidget {
                       )
                       : ListView.builder(
                         padding: const EdgeInsets.all(8.0),
-                        itemCount: newsProvider.articles.length,
+                        itemCount: _articles.length,
                         itemBuilder: (context, index) {
-                          final article = newsProvider.articles[index];
+                          final article = _articles[index];
                           return Padding(
                             padding: const EdgeInsets.only(bottom: 10.0),
-                            child: _buildNewsCard(article, context),
+                            child: Card(
+                              elevation: 5,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(15),
+                              ),
+                              child: InkWell(
+                                onTap: () async {
+                                  final url = Uri.parse(article['url']!);
+                                  if (await canLaunchUrl(url)) {
+                                    await launchUrl(url);
+                                  }
+                                },
+                                borderRadius: BorderRadius.circular(15),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    if (article['imageUrl'] != null) ...[
+                                      ClipRRect(
+                                        borderRadius:
+                                            const BorderRadius.vertical(
+                                              top: Radius.circular(15),
+                                            ),
+                                        child: CachedNetworkImage(
+                                          imageUrl: article['imageUrl']!,
+                                          height: 150,
+                                          width: double.infinity,
+                                          fit: BoxFit.cover,
+                                          placeholder:
+                                              (context, url) => const Center(
+                                                child:
+                                                    CircularProgressIndicator(),
+                                              ),
+                                          errorWidget:
+                                              (context, url, error) =>
+                                                  const Icon(Icons.error),
+                                        ),
+                                      ),
+                                    ],
+                                    Padding(
+                                      padding: const EdgeInsets.all(12.0),
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Row(
+                                            children: [
+                                              Container(
+                                                padding:
+                                                    const EdgeInsets.symmetric(
+                                                      horizontal: 8.0,
+                                                      vertical: 4.0,
+                                                    ),
+                                                decoration: BoxDecoration(
+                                                  color: _getCategoryColor(
+                                                    _selectedCategory,
+                                                  ),
+                                                  borderRadius:
+                                                      BorderRadius.circular(12),
+                                                ),
+                                                child: Text(
+                                                  _selectedCategory[0]
+                                                          .toUpperCase() +
+                                                      _selectedCategory
+                                                          .substring(1),
+                                                  style: const TextStyle(
+                                                    color: Colors.white,
+                                                    fontSize: 12,
+                                                  ),
+                                                ),
+                                              ),
+                                              const Spacer(),
+                                              Text(
+                                                article['timeAgo'] ??
+                                                    '2 hours ago',
+                                                style: TextStyle(
+                                                  color: Colors.grey.shade600,
+                                                  fontSize: 12,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                          const SizedBox(height: 8),
+                                          Text(
+                                            article['title']!,
+                                            style:
+                                                theme.textTheme.titleMedium
+                                                    ?.copyWith(
+                                                      fontWeight:
+                                                          FontWeight.w600,
+                                                      color: Colors.black87,
+                                                    ) ??
+                                                const TextStyle(
+                                                  fontSize: 16,
+                                                  fontWeight: FontWeight.w600,
+                                                  color: Colors.black87,
+                                                ),
+                                            maxLines: 2,
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                          const SizedBox(height: 8),
+                                          Text(
+                                            article['source'] ?? 'Tech Daily',
+                                            style: TextStyle(
+                                              color: Colors.grey.shade600,
+                                              fontSize: 12,
+                                            ),
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
                           );
                         },
                       ),
@@ -106,151 +312,14 @@ class NewsScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildCategoryTab(String label, bool isSelected, VoidCallback onTap) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        margin: const EdgeInsets.symmetric(horizontal: 4.0),
-        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-        decoration: BoxDecoration(
-          color: isSelected ? Colors.red.shade200 : Colors.grey.shade200,
-          borderRadius: BorderRadius.circular(20),
-        ),
-        child: Text(
-          label,
-          style: TextStyle(
-            color: isSelected ? Colors.white : Colors.black87,
-            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildNewsCard(article, BuildContext context) {
-    String category = article.category ?? 'general';
-    Color categoryColor = _getCategoryColor(category);
-    bool isFeatured = article.isFeatured ?? false;
-    final ThemeData localTheme = Theme.of(
-      context,
-    ); // Use local context for safety
-
-    return Card(
-      elevation: 5,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-      child: InkWell(
-        onTap: () async {
-          final url = Uri.parse(article.url);
-          if (await canLaunchUrl(url)) {
-            await launchUrl(url);
-          }
-        },
-        borderRadius: BorderRadius.circular(15),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            if (isFeatured) ...[
-              ClipRRect(
-                borderRadius: const BorderRadius.vertical(
-                  top: Radius.circular(15),
-                ),
-                child: CachedNetworkImage(
-                  imageUrl: article.imageUrl ?? '',
-                  height: 150,
-                  width: double.infinity,
-                  fit: BoxFit.cover,
-                  placeholder:
-                      (context, url) =>
-                          const Center(child: CircularProgressIndicator()),
-                  errorWidget: (context, url, error) => const Icon(Icons.error),
-                ),
-              ),
-              Container(
-                padding: const EdgeInsets.all(8.0),
-                color: Colors.red.shade200,
-                child: const Text(
-                  'FEATURED',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-            ],
-            Padding(
-              padding: const EdgeInsets.all(12.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8.0,
-                          vertical: 4.0,
-                        ),
-                        decoration: BoxDecoration(
-                          color: categoryColor,
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Text(
-                          category[0].toUpperCase() + category.substring(1),
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 12,
-                          ),
-                        ),
-                      ),
-                      const Spacer(),
-                      Text(
-                        article.timeAgo ?? '2 hours ago',
-                        style: TextStyle(
-                          color: Colors.grey.shade600,
-                          fontSize: 12,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    article.title,
-                    style:
-                        localTheme.textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.w600,
-                          color: Colors.black87,
-                        ) ??
-                        const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.black87,
-                        ),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    article.source ?? 'Tech Daily',
-                    style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
   Color _getCategoryColor(String category) {
     switch (category.toLowerCase()) {
-      case 'tech':
-        return Colors.blue.shade200;
-      case 'business':
-        return Colors.orange.shade200;
-      case 'health':
-        return Colors.green.shade200;
+      case 'general':
+        return Colors.grey.shade200;
       case 'sports':
         return Colors.red.shade200;
+      case 'business':
+        return Colors.orange.shade200;
       default:
         return Colors.grey.shade200;
     }
