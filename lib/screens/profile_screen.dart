@@ -85,96 +85,186 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Widget build(BuildContext context) {
     final user = _supabase.auth.currentUser;
     return Scaffold(
-      appBar: AppBar(title: const Text('Profile')),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              if (user != null) ...[
-                Text('Welcome, ${user.email ?? 'User'}!'),
-                const SizedBox(height: 20),
-                ElevatedButton(
-                  onPressed: _signOut,
-                  child: const Text('Sign Out'),
-                ),
-              ] else ...[
-                TextFormField(
-                  controller: _emailController,
-                  decoration: const InputDecoration(
-                    labelText: 'Email',
-                    border: OutlineInputBorder(),
-                  ),
-                  keyboardType: TextInputType.emailAddress,
-                  autofillHints: const [AutofillHints.email],
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please enter your email';
-                    }
-                    if (!RegExp(
-                      r'^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$',
-                    ).hasMatch(value)) {
-                      return 'Please enter a valid email';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 16),
-                TextFormField(
-                  controller: _passwordController,
-                  decoration: const InputDecoration(
-                    labelText: 'Password',
-                    border: OutlineInputBorder(),
-                  ),
-                  obscureText: true,
-                  autofillHints: const [AutofillHints.password],
-                ),
-                const SizedBox(height: 20),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    ChoiceChip(
-                      label: const Text('Sign In'),
-                      selected: !_isSignUp,
-                      onSelected: (selected) {
-                        if (selected) setState(() => _isSignUp = false);
-                      },
+      appBar: AppBar(
+        title: const Text(
+          'Profile',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
+        flexibleSpace: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [Colors.blue.shade600, Colors.purple.shade400],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+          ),
+        ),
+        elevation: 0,
+      ),
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [Colors.blue.shade50, Colors.purple.shade50],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+          ),
+        ),
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(16.0),
+          child: Form(
+            key: _formKey,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                if (user != null) ...[
+                  Card(
+                    elevation: 5,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(15),
                     ),
-                    const SizedBox(width: 10),
-                    ChoiceChip(
-                      label: const Text('Sign Up'),
-                      selected: _isSignUp,
-                      onSelected: (selected) {
-                        if (selected) setState(() => _isSignUp = true);
-                      },
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 20),
-                ElevatedButton(
-                  onPressed:
-                      _isLoading
-                          ? null
-                          : _isSignUp
-                          ? _signUpWithEmail
-                          : _signInWithEmail,
-                  child:
-                      _isLoading
-                          ? const CircularProgressIndicator()
-                          : Text(
-                            _isSignUp
-                                ? 'Sign Up with Email'
-                                : 'Sign In with Email',
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Column(
+                        children: [
+                          Text(
+                            'Welcome, ${user.email ?? 'User'}!',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
-                ),
-                if (_error != null) ...[
-                  const SizedBox(height: 20),
-                  Text(_error!, style: const TextStyle(color: Colors.red)),
+                          const SizedBox(height: 20),
+                          ElevatedButton(
+                            onPressed: _signOut,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.red.shade400,
+                            ),
+                            child: const Text(
+                              'Sign Out',
+                              style: TextStyle(color: Colors.white),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ] else ...[
+                  Card(
+                    elevation: 5,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(15),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Column(
+                        children: [
+                          TextFormField(
+                            controller: _emailController,
+                            decoration: InputDecoration(
+                              labelText: 'Email',
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              filled: true,
+                              fillColor: Colors.white,
+                            ),
+                            keyboardType: TextInputType.emailAddress,
+                            autofillHints: const [AutofillHints.email],
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'Please enter your email';
+                              }
+                              if (!RegExp(
+                                r'^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$',
+                              ).hasMatch(value)) {
+                                return 'Please enter a valid email';
+                              }
+                              return null;
+                            },
+                          ),
+                          const SizedBox(height: 16),
+                          TextFormField(
+                            controller: _passwordController,
+                            decoration: InputDecoration(
+                              labelText: 'Password',
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              filled: true,
+                              fillColor: Colors.white,
+                            ),
+                            obscureText: true,
+                            autofillHints: const [AutofillHints.password],
+                          ),
+                          const SizedBox(height: 20),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              ChoiceChip(
+                                label: const Text('Sign In'),
+                                selected: !_isSignUp,
+                                selectedColor: Colors.blue.shade200,
+                                backgroundColor: Colors.grey.shade200,
+                                onSelected: (selected) {
+                                  if (selected)
+                                    setState(() => _isSignUp = false);
+                                },
+                              ),
+                              const SizedBox(width: 10),
+                              ChoiceChip(
+                                label: const Text('Sign Up'),
+                                selected: _isSignUp,
+                                selectedColor: Colors.blue.shade200,
+                                backgroundColor: Colors.grey.shade200,
+                                onSelected: (selected) {
+                                  if (selected)
+                                    setState(() => _isSignUp = true);
+                                },
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 20),
+                          ElevatedButton(
+                            onPressed:
+                                _isLoading
+                                    ? null
+                                    : _isSignUp
+                                    ? _signUpWithEmail
+                                    : _signInWithEmail,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.blue.shade600,
+                            ),
+                            child:
+                                _isLoading
+                                    ? const CircularProgressIndicator(
+                                      color: Colors.white,
+                                    )
+                                    : Text(
+                                      _isSignUp
+                                          ? 'Sign Up with Email'
+                                          : 'Sign In with Email',
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                          ),
+                          if (_error != null) ...[
+                            const SizedBox(height: 20),
+                            Text(
+                              _error!,
+                              style: TextStyle(
+                                color: Colors.red.shade700,
+                                fontSize: 14,
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+                    ),
+                  ),
                 ],
               ],
-            ],
+            ),
           ),
         ),
       ),
