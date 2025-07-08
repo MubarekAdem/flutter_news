@@ -1,85 +1,15 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../providers/news_provider.dart';
 
-class NewsScreen extends StatefulWidget {
+class NewsScreen extends StatelessWidget {
   const NewsScreen({super.key});
 
   @override
-  State<NewsScreen> createState() => _NewsScreenState();
-}
-
-class _NewsScreenState extends State<NewsScreen> {
-  String _selectedCategory = 'general';
-  bool _isLoading = false;
-  String _error = '';
-  List<Map<String, String>> _articles = [];
-
-  // Simulated fetchNews (replace with your actual data source)
-  Future<void> _fetchNews(String category) async {
-    setState(() {
-      _isLoading = true;
-      _error = '';
-    });
-    try {
-      // Simulate fetching articles (replace with your API call or data source)
-      await Future.delayed(
-        const Duration(seconds: 1),
-      ); // Simulate network delay
-      setState(() {
-        _selectedCategory = category;
-        _articles = _getSampleArticles(category);
-        _isLoading = false;
-      });
-    } catch (e) {
-      setState(() {
-        _error = 'Error fetching news: $e';
-        _isLoading = false;
-      });
-    }
-  }
-
-  // Sample articles (replace with your data model)
-  List<Map<String, String>> _getSampleArticles(String category) {
-    return [
-      if (category == 'general') ...[
-        {
-          'title': 'General News Headline',
-          'url': 'https://example.com',
-          'imageUrl': 'https://via.placeholder.com/150',
-          'timeAgo': '1 hour ago',
-          'source': 'News Daily',
-        },
-      ],
-      if (category == 'sports') ...[
-        {
-          'title': 'Sports Event Update',
-          'url': 'https://example.com',
-          'imageUrl': 'https://via.placeholder.com/150',
-          'timeAgo': '2 hours ago',
-          'source': 'Sports Now',
-        },
-      ],
-      if (category == 'business') ...[
-        {
-          'title': 'Business Market Report',
-          'url': 'https://example.com',
-          'imageUrl': 'https://via.placeholder.com/150',
-          'timeAgo': '3 hours ago',
-          'source': 'Business Today',
-        },
-      ],
-    ];
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    _fetchNews(_selectedCategory);
-  }
-
-  @override
   Widget build(BuildContext context) {
+    final newsProvider = Provider.of<NewsProvider>(context, listen: true);
     final ThemeData theme = Theme.of(context);
 
     return Scaffold(
@@ -115,53 +45,26 @@ class _NewsScreenState extends State<NewsScreen> {
         ),
         child: Column(
           children: [
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(30),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.grey.shade200,
-                      blurRadius: 10,
-                      offset: const Offset(0, 5),
-                    ),
-                  ],
-                ),
-                child: DropdownButtonHideUnderline(
-                  child: DropdownButton<String>(
-                    value: _selectedCategory,
-                    isExpanded: true,
-                    icon: const Icon(
-                      Icons.arrow_drop_down_circle_outlined,
-                      color: Colors.blue,
-                    ),
-                    style: const TextStyle(color: Colors.black87, fontSize: 16),
-                    items: const [
-                      DropdownMenuItem(
-                        value: 'general',
-                        child: Text('General'),
-                      ),
-                      DropdownMenuItem(value: 'sports', child: Text('Sports')),
-                      DropdownMenuItem(
-                        value: 'business',
-                        child: Text('Business'),
-                      ),
-                    ],
-                    onChanged: (value) {
-                      if (value != null) {
-                        _fetchNews(value);
-                      }
-                    },
-                  ),
-                ),
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.all(8.0),
+              child: Row(
+                children: [
+                  _buildCategoryTab('General', 'general', () {
+                    newsProvider.fetchNews('general');
+                  }),
+                  _buildCategoryTab('Sports', 'sports', () {
+                    newsProvider.fetchNews('sports');
+                  }),
+                  _buildCategoryTab('Business', 'business', () {
+                    newsProvider.fetchNews('business');
+                  }),
+                ],
               ),
             ),
             Expanded(
               child:
-                  _isLoading
+                  newsProvider.isLoading
                       ? const Center(
                         child: CircularProgressIndicator(
                           valueColor: AlwaysStoppedAnimation<Color>(
@@ -169,10 +72,10 @@ class _NewsScreenState extends State<NewsScreen> {
                           ),
                         ),
                       )
-                      : _error.isNotEmpty
+                      : newsProvider.error.isNotEmpty
                       ? Center(
                         child: Text(
-                          _error,
+                          newsProvider.error,
                           style: TextStyle(
                             color: Colors.red.shade700,
                             fontSize: 16,
@@ -181,9 +84,9 @@ class _NewsScreenState extends State<NewsScreen> {
                       )
                       : ListView.builder(
                         padding: const EdgeInsets.all(8.0),
-                        itemCount: _articles.length,
+                        itemCount: newsProvider.articles.length,
                         itemBuilder: (context, index) {
-                          final article = _articles[index];
+                          final article = newsProvider.articles[index];
                           return Padding(
                             padding: const EdgeInsets.only(bottom: 10.0),
                             child: Card(
@@ -193,7 +96,7 @@ class _NewsScreenState extends State<NewsScreen> {
                               ),
                               child: InkWell(
                                 onTap: () async {
-                                  final url = Uri.parse(article['url']!);
+                                  final url = Uri.parse(article.url);
                                   if (await canLaunchUrl(url)) {
                                     await launchUrl(url);
                                   }
@@ -202,14 +105,14 @@ class _NewsScreenState extends State<NewsScreen> {
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    if (article['imageUrl'] != null) ...[
+                                    if (article.imageUrl != null) ...[
                                       ClipRRect(
                                         borderRadius:
                                             const BorderRadius.vertical(
                                               top: Radius.circular(15),
                                             ),
                                         child: CachedNetworkImage(
-                                          imageUrl: article['imageUrl']!,
+                                          imageUrl: article.imageUrl!,
                                           height: 150,
                                           width: double.infinity,
                                           fit: BoxFit.cover,
@@ -240,16 +143,14 @@ class _NewsScreenState extends State<NewsScreen> {
                                                     ),
                                                 decoration: BoxDecoration(
                                                   color: _getCategoryColor(
-                                                    _selectedCategory,
-                                                  ),
+                                                    'general',
+                                                  ), // Default to 'general'
                                                   borderRadius:
                                                       BorderRadius.circular(12),
                                                 ),
                                                 child: Text(
-                                                  _selectedCategory[0]
-                                                          .toUpperCase() +
-                                                      _selectedCategory
-                                                          .substring(1),
+                                                  'General'[0].toUpperCase() +
+                                                      'General'.substring(1),
                                                   style: const TextStyle(
                                                     color: Colors.white,
                                                     fontSize: 12,
@@ -257,19 +158,19 @@ class _NewsScreenState extends State<NewsScreen> {
                                                 ),
                                               ),
                                               const Spacer(),
-                                              Text(
-                                                article['timeAgo'] ??
-                                                    '2 hours ago',
-                                                style: TextStyle(
-                                                  color: Colors.grey.shade600,
-                                                  fontSize: 12,
-                                                ),
-                                              ),
+                                              // Text(
+                                              //   article.timeAgo ??
+                                              //       '2 hours ago',
+                                              //   style: TextStyle(
+                                              //     color: Colors.grey.shade600,
+                                              //     fontSize: 12,
+                                              //   ),
+                                              // ),
                                             ],
                                           ),
                                           const SizedBox(height: 8),
                                           Text(
-                                            article['title']!,
+                                            article.title,
                                             style:
                                                 theme.textTheme.titleMedium
                                                     ?.copyWith(
@@ -286,15 +187,13 @@ class _NewsScreenState extends State<NewsScreen> {
                                             overflow: TextOverflow.ellipsis,
                                           ),
                                           const SizedBox(height: 8),
-                                          Text(
-                                            article['source'] ?? 'Tech Daily',
-                                            style: TextStyle(
-                                              color: Colors.grey.shade600,
-                                              fontSize: 12,
-                                            ),
-                                            maxLines: 1,
-                                            overflow: TextOverflow.ellipsis,
-                                          ),
+                                          // Text(
+                                          //   // article.source ?? 'Tech Daily',
+                                          //   // style: TextStyle(
+                                          //   //   color: Colors.grey.shade600,
+                                          //   //   fontSize: 12,
+                                          //   // ),
+                                          // ),
                                         ],
                                       ),
                                     ),
@@ -308,6 +207,43 @@ class _NewsScreenState extends State<NewsScreen> {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildCategoryTab(String label, String value, VoidCallback onTap) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Consumer<NewsProvider>(
+        builder: (context, provider, child) {
+          return Container(
+            margin: const EdgeInsets.symmetric(horizontal: 4.0),
+            padding: const EdgeInsets.symmetric(
+              horizontal: 16.0,
+              vertical: 8.0,
+            ),
+            decoration: BoxDecoration(
+              color:
+                  provider.isLoading && label.toLowerCase() == value
+                      ? Colors.red.shade200
+                      : Colors.grey.shade200,
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Text(
+              label,
+              style: TextStyle(
+                color:
+                    provider.isLoading && label.toLowerCase() == value
+                        ? Colors.white
+                        : Colors.black87,
+                fontWeight:
+                    provider.isLoading && label.toLowerCase() == value
+                        ? FontWeight.bold
+                        : FontWeight.normal,
+              ),
+            ),
+          );
+        },
       ),
     );
   }
