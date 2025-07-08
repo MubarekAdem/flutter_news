@@ -1,15 +1,15 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../providers/news_provider.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../providers/news_provider.dart';
 
 class NewsScreen extends StatelessWidget {
   const NewsScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final newsProvider = Provider.of(context);
+    final newsProvider = Provider.of<NewsProvider>(context);
 
     return Scaffold(
       appBar: AppBar(title: const Text('News')),

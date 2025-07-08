@@ -4,10 +4,10 @@ import '../config/env.dart';
 import '../models/article.dart';
 
 class NewsProvider with ChangeNotifier {
-  List _articles = [];
+  List<Article> _articles = [];
   bool _isLoading = false;
   String _error = '';
-  List get articles => _articles;
+  List<Article> get articles => _articles;
   bool get isLoading => _isLoading;
   String get error => _error;
   final Dio _dio = Dio();

@@ -1,3 +1,5 @@
+import 'package:uuid/uuid.dart';
+
 class Article {
   final String id;
   final String title;

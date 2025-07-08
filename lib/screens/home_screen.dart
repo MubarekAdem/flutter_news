@@ -12,10 +12,10 @@ class HomeScreen extends StatefulWidget {
   State createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State {
+class _HomeScreenState extends State<HomeScreen> {
   int _selectedIndex = 0;
 
-  final List_screens = [
+  final List<Widget> _screens = [
     const NewsScreen(),
     const TravelScreen(),
     const WeatherScreen(),
